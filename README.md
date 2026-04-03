@@ -46,7 +46,7 @@ AgcArchive.open(Path.of("genomes.agc")).use { archive ->
 | `getSequence(contig, start, end, sample?)` | Extract a subsequence (0-based, inclusive). |
 
 
-> ![NOTE]
+> [!NOTE]
 >
 > `AgcArchive` is currently **not** thread-safe. For concurrent access, either synchronize externally or open a separate 
 > handle per thread.
