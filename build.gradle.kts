@@ -56,6 +56,16 @@ tasks.register<JavaExec>("demo") {
     jvmArgs("-Djna.library.path=${layout.projectDirectory.dir("native/lib").asFile.absolutePath}")
 }
 
+tasks.register<JavaExec>("benchmarkReal") {
+    group = "verification"
+    description =
+        "JNA vs agc CLI on AGC_ARCHIVE_PATH (.env), chr1–chr10; needs agc on PATH and native/lib"
+    dependsOn(tasks.testClasses)
+    classpath = sourceSets["test"].runtimeClasspath
+    mainClass.set("org.btmonier.agckt.benchmark.RealWorldAgcBenchmarkKt")
+    workingDir = layout.projectDirectory.asFile
+    jvmArgs("-Djna.library.path=${layout.projectDirectory.dir("native/lib").asFile.absolutePath}")
+}
 
 detekt {
     buildUponDefaultConfig = true

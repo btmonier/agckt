@@ -44,7 +44,7 @@ fun main() {
                     println("    $seq")
                 } else {
                     val preview = archive.getSequence(contig, start = 0, end = 49, sample = sample)
-                    println("    ${preview}... (truncated)")
+                    println("    $preview... (truncated)")
                 }
             }
             println()

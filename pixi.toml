@@ -16,5 +16,6 @@ agc = { version = ">=3.2", channel = "bioconda" }
 [tasks]
 build-native = { cmd = "bash native/build.sh", description = "Build AGC shared library from source" }
 clean-native = { cmd = "rm -rf native/agc-src native/lib", description = "Remove native build artifacts" }
-benchmark    = { cmd = "./gradlew benchmark", description = "JNA vs Bioconda agc CLI (PATH includes agc; needs native/lib)" }
-demo         = { cmd = "./gradlew demo", description = "Run Demo.kt (AGC_ARCHIVE_PATH in .env; needs native/lib)" }
+benchmark      = { cmd = "./gradlew benchmark", description = "JNA vs Bioconda agc CLI (PATH includes agc; needs native/lib)" }
+benchmark-real = { cmd = "./gradlew benchmarkReal", description = "JNA vs agc on AGC_ARCHIVE_PATH (.env), chr1–chr10" }
+demo           = { cmd = "./gradlew demo", description = "Run Demo.kt (AGC_ARCHIVE_PATH in .env; needs native/lib)" }

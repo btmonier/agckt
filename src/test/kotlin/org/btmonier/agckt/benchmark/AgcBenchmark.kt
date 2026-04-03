@@ -63,15 +63,15 @@ fun main(args: Array<String>) {
             appendLine("=".repeat(60))
             appendLine(
                 "JNA (1x open, ${iterations}x ${queries.size} getSequence calls):  " +
-                    "${jnaMs} ms total, ${"%.3f".format(jnaMs.toDouble() / totalOps)} ms/op",
+                    "$jnaMs ms total, ${"%.3f".format(jnaMs.toDouble() / totalOps)} ms/op",
             )
             appendLine(
                 "CLI (1x process per region, ${iterations * queries.size}x getctg): " +
-                    "${cliPerQueryMs} ms total, ${"%.3f".format(cliPerQueryMs.toDouble() / totalOps)} ms/op",
+                    "$cliPerQueryMs ms total, ${"%.3f".format(cliPerQueryMs.toDouble() / totalOps)} ms/op",
             )
             appendLine(
                 "CLI (1X getctg per batch, ${iterations}x ${queries.size} regions each): " +
-                    "${cliBatchMs} ms total, ${"%.3f".format(cliBatchMs.toDouble() / iterations)} ms/invocation",
+                    "$cliBatchMs ms total, ${"%.3f".format(cliBatchMs.toDouble() / iterations)} ms/invocation",
             )
             appendLine("=".repeat(60))
             val jnaSafe = maxOf(1, jnaMs).toDouble()
@@ -89,7 +89,7 @@ fun main(args: Array<String>) {
 internal data class RegionQuery(val sample: String, val contig: String, val start: Int, val end: Int)
 
 /** AGC `getctg` uses 0-based inclusive ranges (same as [AgcArchive.getSequence]). */
-internal fun RegionQuery.toCliSpec(): String = "${contig}@${sample}:${start}-${end}"
+internal fun RegionQuery.toCliSpec(): String = "$contig@$sample:$start-$end"
 
 private object FixtureResource
 
@@ -100,7 +100,7 @@ private fun resolveArchivePath(): Path {
     return Path.of(url.toURI())
 }
 
-private fun checkAgcExists() {
+internal fun checkAgcExists() {
     try {
         val p = ProcessBuilder("agc").start()
         sinkProcess(p)
