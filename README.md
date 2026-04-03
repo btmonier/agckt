@@ -2,16 +2,6 @@
 
 Kotlin/JVM bindings for [AGC (Assembled Genomes Compressor)](https://github.com/refresh-bio/agc) archives.
 
-**agckt** provides a safe, idiomatic Kotlin API for reading AGC archives via JNA bindings to the native AGC C library. It handles all native memory management internally, so you can focus on your genomics workflow.
-
-## Features
-
-- Open and query AGC archives from any JVM language
-- List samples and contigs
-- Extract full sequences or arbitrary slices
-- Safe resource management via `Closeable` / `use {}`
-- Automatic native library loading (bundled in JAR or via system path)
-- Zero native code to write -- pure Kotlin over JNA
 
 ## Quick Start
 
@@ -55,15 +45,12 @@ AgcArchive.open(Path.of("genomes.agc")).use { archive ->
 | `getSequence(contig, sample?)` | Extract the full sequence. |
 | `getSequence(contig, start, end, sample?)` | Extract a subsequence (0-based, inclusive). |
 
-### Error Handling
 
-- `AgcException` -- base class for all AGC errors
-- `AgcFileNotFoundException` -- archive file not found
-- `AgcNativeException` -- native operation failed (bad contig name, ambiguous query, etc.)
+> ![NOTE]
+>
+> `AgcArchive` is currently **not** thread-safe. For concurrent access, either synchronize externally or open a separate 
+> handle per thread.
 
-### Thread Safety
-
-`AgcArchive` is **not** thread-safe. For concurrent access, either synchronize externally or open a separate handle per thread.
 
 ## Building the Native Library
 
@@ -76,12 +63,6 @@ automatically via conda-forge -- no manual installs needed:
 
 ```bash
 pixi run build-native
-```
-
-If you don't have pixi yet:
-
-```bash
-curl -fsSL https://pixi.sh/install.sh | sh
 ```
 
 ### Without pixi
@@ -97,57 +78,4 @@ bash build.sh
 - **GNU Make 4+** (`brew install make` on macOS)
 - **cmake**, **git**
 
-On macOS: `brew install gcc make`
 
-You can also override the compiler by setting `CC` and `CXX` before running the script:
-
-```bash
-CC=gcc-14 CXX=g++-14 bash native/build.sh
-```
-
-### What the build does
-
-The script clones AGC v3.2, builds the static archive, and links it into a shared library (`libagc.dylib` / `libagc.so`). The result is automatically copied to `src/main/resources/native/<platform>/` for JAR embedding.
-
-### Manual Library Path
-
-If the native library is installed elsewhere, point JNA to it:
-
-```bash
-java -Djna.library.path=/path/to/lib -jar myapp.jar
-```
-
-## Development
-
-```bash
-# Build everything (compile + lint + test)
-./gradlew build
-
-# Run tests only
-./gradlew test
-
-# Format code
-./gradlew ktlintFormat
-```
-
-## Project Structure
-
-```
-src/main/kotlin/org/btmonier/agckt/
-  AgcArchive.kt          -- public API
-  AgcException.kt        -- exception hierarchy
-  internal/
-    AgcLibrary.kt        -- JNA function mappings
-    NativeLoader.kt      -- platform-aware library loading
-    PointerUtils.kt      -- char** conversion helpers
-    CLibrary.kt          -- libc free() binding
-native/
-  build.sh               -- builds shared library from AGC source
-  include/agc-api.h      -- vendored C API header
-```
-
-## License
-
-MIT -- see [LICENSE](LICENSE).
-
-AGC itself is also MIT-licensed. See [refresh-bio/agc](https://github.com/refresh-bio/agc).
