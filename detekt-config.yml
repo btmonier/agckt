@@ -1,0 +1,12 @@
+complexity:
+  LongParameterList:
+    ignoreDefaultParameters: true
+    functionThreshold: 8
+  TooManyFunctions:
+    thresholdInInterfaces: 15
+
+naming:
+  FunctionNaming:
+    excludes:
+      - "**/internal/AgcLibrary.kt"
+      - "**/test/**"

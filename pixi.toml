@@ -1,0 +1,17 @@
+[workspace]
+name = "agckt"
+version = "0.1.0"
+description = "Kotlin/JVM bindings for AGC – native build environment"
+channels = ["conda-forge"]
+platforms = ["linux-64", "linux-aarch64", "osx-arm64", "osx-64"]
+
+[dependencies]
+cmake = ">=3.20"
+make = ">=4"
+git = "*"
+gcc = ">=11"
+gxx = ">=11"
+
+[tasks]
+build-native = { cmd = "bash native/build.sh", description = "Build AGC shared library from source" }
+clean-native = { cmd = "rm -rf native/agc-src native/lib", description = "Remove native build artifacts" }
