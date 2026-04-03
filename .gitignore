@@ -3,6 +3,9 @@
 build/
 !gradle/wrapper/gradle-wrapper.jar
 
+# Local env (paths, secrets)
+.env
+
 # IDE
 .idea/
 *.iml

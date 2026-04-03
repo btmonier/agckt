@@ -24,6 +24,7 @@ dependencies {
     api(libs.jna)
 
     testImplementation(kotlin("test"))
+    testImplementation(libs.dotenv.java)
     testImplementation(libs.junit.jupiter)
     testImplementation(libs.kotest.assertions)
 }
@@ -32,6 +33,29 @@ tasks.test {
     useJUnitPlatform()
     systemProperty("jna.library.path", layout.projectDirectory.dir("native/lib").asFile.absolutePath)
 }
+
+tasks.register<JavaExec>("benchmark") {
+    group = "verification"
+    description =
+        "Compare JNA (AgcArchive) vs agc CLI getctg. Requires agc on PATH and native/lib — use: pixi run benchmark"
+    dependsOn(tasks.testClasses)
+    classpath = sourceSets["test"].runtimeClasspath
+    mainClass.set("org.btmonier.agckt.benchmark.AgcBenchmarkKt")
+    workingDir = layout.projectDirectory.asFile
+    jvmArgs("-Djna.library.path=${layout.projectDirectory.dir("native/lib").asFile.absolutePath}")
+}
+
+tasks.register<JavaExec>("demo") {
+    group = "verification"
+    description =
+        "Run Demo.kt (set AGC_ARCHIVE_PATH in .env or env; requires native/lib for JNA)"
+    dependsOn(tasks.testClasses)
+    classpath = sourceSets["test"].runtimeClasspath
+    mainClass.set("org.btmonier.agckt.benchmark.DemoKt")
+    workingDir = layout.projectDirectory.asFile
+    jvmArgs("-Djna.library.path=${layout.projectDirectory.dir("native/lib").asFile.absolutePath}")
+}
+
 
 detekt {
     buildUponDefaultConfig = true

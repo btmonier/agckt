@@ -2,7 +2,7 @@
 name        = "agckt"
 version     = "0.1.0"
 description = "Kotlin/JVM bindings and utilities for working with AGC (Assembled Genomes Compressor) archives."
-channels    = ["conda-forge"]
+channels    = ["conda-forge", "https://conda.anaconda.org/bioconda"]
 platforms   = ["linux-64", "linux-aarch64", "osx-arm64", "osx-64"]
 
 [dependencies]
@@ -11,7 +11,10 @@ make  = ">=4"
 git   = "*"
 gcc   = ">=11"
 gxx   = ">=11"
+agc = { version = ">=3.2", channel = "bioconda" }
 
 [tasks]
 build-native = { cmd = "bash native/build.sh", description = "Build AGC shared library from source" }
 clean-native = { cmd = "rm -rf native/agc-src native/lib", description = "Remove native build artifacts" }
+benchmark    = { cmd = "./gradlew benchmark", description = "JNA vs Bioconda agc CLI (PATH includes agc; needs native/lib)" }
+demo         = { cmd = "./gradlew demo", description = "Run Demo.kt (AGC_ARCHIVE_PATH in .env; needs native/lib)" }
