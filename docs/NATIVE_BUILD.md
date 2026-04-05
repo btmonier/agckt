@@ -44,11 +44,11 @@ The script will:
 
 ## Output
 
-| Platform | Library | Resource path |
-|---|---|---|
-| Linux x86_64 | `libagc.so` | `native/linux-x86-64/libagc.so` |
-| macOS x86_64 | `libagc.dylib` | `native/darwin-x86-64/libagc.dylib` |
-| macOS ARM64 | `libagc.dylib` | `native/darwin-aarch64/libagc.dylib` |
+| Platform     | Library        | Resource path                        |
+|--------------|----------------|--------------------------------------|
+| Linux x86_64 | `libagc.so`    | `native/linux-x86-64/libagc.so`      |
+| macOS x86_64 | `libagc.dylib` | `native/darwin-x86-64/libagc.dylib`  |
+| macOS ARM64  | `libagc.dylib` | `native/darwin-aarch64/libagc.dylib` |
 
 ## Using a Pre-built Library
 

@@ -6,17 +6,17 @@ agckt uses a three-layer architecture to isolate native complexity from the publ
 
 ```
 +---------------------------------------------+
-|  Public Kotlin API                           |
-|  AgcArchive (Closeable, safe)                |
-|  AgcException hierarchy                      |
+|  Public Kotlin API                          |
+|  AgcArchive (Closeable, safe)               |
+|  AgcException hierarchy                     |
 +---------------------------------------------+
-|  Internal Binding Layer                      |
-|  AgcLibrary (JNA interface)                  |
-|  NativeLoader, PointerUtils, CLibrary        |
+|  Internal Binding Layer                     |
+|  AgcLibrary (JNA interface)                 |
+|  NativeLoader, PointerUtils, CLibrary       |
 +---------------------------------------------+
-|  Native Shared Library                       |
-|  libagc.so / libagc.dylib                    |
-|  (AGC C API compiled as shared object)       |
+|  Native Shared Library                      |
+|  libagc.so / libagc.dylib                   |
+|  (AGC C API compiled as shared object)      |
 +---------------------------------------------+
 ```
 
@@ -44,13 +44,13 @@ re-linked with zstd and zlib-ng into a single shared object.
 
 ## Memory Ownership
 
-| Allocation | Deallocation | Scope |
-|---|---|---|
-| `agc_open` | `agc_close` | Tied to `AgcArchive.close()` |
-| `agc_list_sample` | `agc_list_destroy` | Within `listSamples()` try/finally |
-| `agc_list_ctg` | `agc_list_destroy` | Within `listContigs()` try/finally |
-| `agc_reference_sample` | `free()` | Within `referenceSample` getter |
-| `Memory(n)` for seq buf | JVM GC | Scoped to `getSequence()` call |
+| Allocation              | Deallocation       | Scope                              |
+|-------------------------|--------------------|------------------------------------|
+| `agc_open`              | `agc_close`        | Tied to `AgcArchive.close()`       |
+| `agc_list_sample`       | `agc_list_destroy` | Within `listSamples()` try/finally |
+| `agc_list_ctg`          | `agc_list_destroy` | Within `listContigs()` try/finally |
+| `agc_reference_sample`  | `free()`           | Within `referenceSample` getter    |
+| `Memory(n)` for seq buf | JVM GC             | Scoped to `getSequence()` call     |
 
 ## Future Extensibility
 
