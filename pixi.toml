@@ -12,10 +12,14 @@ git   = "*"
 gcc   = ">=11"
 gxx   = ">=11"
 agc = { version = ">=3.2", channel = "bioconda" }
+r-base = ">=4.3"
+r-ggplot2 = ">=3.4"
 
 [tasks]
 build-native = { cmd = "bash native/build.sh", description = "Build AGC shared library from source" }
 clean-native = { cmd = "rm -rf native/agc-src native/lib", description = "Remove native build artifacts" }
-benchmark      = { cmd = "./gradlew benchmark", description = "JNA vs Bioconda agc CLI (PATH includes agc; needs native/lib)" }
-benchmark-real = { cmd = "./gradlew benchmarkReal", description = "JNA vs agc on AGC_ARCHIVE_PATH (.env), chr1–chr10" }
-demo           = { cmd = "./gradlew demo", description = "Run Demo.kt (AGC_ARCHIVE_PATH in .env; needs native/lib)" }
+benchmark = { cmd = "./gradlew benchmark && Rscript scripts/plot_benchmark.R build/reports/benchmark-data/toy_benchmark.csv build/reports/benchmark-data/toy_benchmark.png", description = "Toy AGC benchmark: CSV + ggplot2 boxplot under build/reports/benchmark-data/" }
+benchmark-real = { cmd = "./gradlew benchmarkReal && Rscript scripts/plot_benchmark.R build/reports/benchmark-data/realworld_benchmark.csv build/reports/benchmark-data/realworld_benchmark.png", description = "Real archive benchmark: CSV + boxplot (needs .env / AGC_ARCHIVE_PATH)" }
+plot-benchmark-toy = { cmd = "Rscript scripts/plot_benchmark.R build/reports/benchmark-data/toy_benchmark.csv build/reports/benchmark-data/toy_benchmark.png", description = "Regenerate toy boxplot from existing CSV" }
+plot-benchmark-real = { cmd = "Rscript scripts/plot_benchmark.R build/reports/benchmark-data/realworld_benchmark.csv build/reports/benchmark-data/realworld_benchmark.png", description = "Regenerate realworld boxplot from existing CSV" }
+demo = { cmd = "./gradlew demo", description = "Run Demo.kt (AGC_ARCHIVE_PATH in .env; needs native/lib)" }

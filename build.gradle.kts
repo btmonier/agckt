@@ -64,7 +64,10 @@ tasks.register<JavaExec>("benchmarkReal") {
     classpath = sourceSets["test"].runtimeClasspath
     mainClass.set("org.btmonier.agckt.benchmark.RealWorldAgcBenchmarkKt")
     workingDir = layout.projectDirectory.asFile
-    jvmArgs("-Djna.library.path=${layout.projectDirectory.dir("native/lib").asFile.absolutePath}")
+    jvmArgs(
+        "-Djna.library.path=${layout.projectDirectory.dir("native/lib").asFile.absolutePath}",
+        "-Xmx512m",
+    )
 }
 
 detekt {

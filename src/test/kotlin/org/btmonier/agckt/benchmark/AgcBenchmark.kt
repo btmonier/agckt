@@ -13,9 +13,11 @@ import kotlin.system.measureTimeMillis
  * Run: `./gradlew benchmark` (requires `native/lib` and `agc` on `PATH` - use `pixi run benchmark`).
  *
  * Environment:
- * - `AGC_BENCHMARK_ARCHIVE` - absolute or project-relative path to `.agc` (default: test fixture `toy_ex.agc` from classpath)
+ * - `AGC_BENCHMARK_ARCHIVE` - path to `.agc` (default: classpath fixture `toy_ex.agc`)
  * - `AGC_BENCHMARK_ITERATIONS` - outer repetitions (default: 200)
  * - `AGC_BENCHMARK_WARMUP` - warmup rounds (default: 20)
+ * - `AGC_BENCHMARK_REPORT_DIR` - directory for CSV (default: `build/reports/benchmark-data`)
+ * - `AGC_BENCHMARK_CSV` - full path to CSV output (overrides default `toy_benchmark.csv` in report dir)
  *
  * Args: `[iterations] [warmup]` override env defaults.
  */
@@ -52,37 +54,24 @@ fun main(args: Array<String>) {
         cliBatchPerIteration(archivePath, queries, 1)
     }
 
-    val jnaMs = measureTimeMillis { jnaOneOpen(archivePath, queries, iterations) }
-    val cliPerQueryMs = measureTimeMillis { cliProcessPerQuery(archivePath, queries, iterations) }
-    val cliBatchMs = measureTimeMillis { cliBatchPerIteration(archivePath, queries, iterations) }
+    val jnaSamples = List(iterations) { measureTimeMillis { jnaOneOpen(archivePath, queries, 1) } }
+    val cliPerQuerySamples =
+        List(iterations) { measureTimeMillis { cliProcessPerQuery(archivePath, queries, 1) } }
+    val cliBatchSamples =
+        List(iterations) { measureTimeMillis { cliBatchPerIteration(archivePath, queries, 1) } }
 
-    val totalOps = iterations.toLong() * queries.size
+    val csvPath = resolveBenchmarkCsvPath("toy_benchmark.csv")
+    writeBenchmarkCsv(csvPath, samplesToRows(jnaSamples, cliPerQuerySamples, cliBatchSamples))
+    println("Raw samples written: ${csvPath.toAbsolutePath()}")
+    println()
     println(
-        buildString {
-            appendLine("Scenario (lower ms is better for same total work)")
-            appendLine("=".repeat(60))
-            appendLine(
-                "JNA (1x open, ${iterations}x ${queries.size} getSequence calls):  " +
-                    "$jnaMs ms total, ${"%.3f".format(jnaMs.toDouble() / totalOps)} ms/op",
-            )
-            appendLine(
-                "CLI (1x process per region, ${iterations * queries.size}x getctg): " +
-                    "$cliPerQueryMs ms total, ${"%.3f".format(cliPerQueryMs.toDouble() / totalOps)} ms/op",
-            )
-            appendLine(
-                "CLI (1X getctg per batch, ${iterations}x ${queries.size} regions each): " +
-                    "$cliBatchMs ms total, ${"%.3f".format(cliBatchMs.toDouble() / iterations)} ms/invocation",
-            )
-            appendLine("=".repeat(60))
-            val jnaSafe = maxOf(1, jnaMs).toDouble()
-            appendLine(
-                "Speedup JNA vs CLI-per-query: ${"%.2f".format(cliPerQueryMs / jnaSafe)}x " +
-                    "(if >1, JNA is faster)",
-            )
-            appendLine(
-                "Speedup JNA vs CLI-per-batch:   ${"%.2f".format(cliBatchMs / jnaSafe)}x",
-            )
-        },
+        formatBenchmarkSummary(
+            iterations,
+            queries.size,
+            jnaSamples,
+            cliPerQuerySamples,
+            cliBatchSamples,
+        ),
     )
 }
 
@@ -122,8 +111,8 @@ private fun sinkProcess(p: Process) {
 }
 
 /** One archive open; repeat [iterations] times all queries (typical JNA usage). */
-internal fun jnaOneOpen(archivePath: Path, queries: List<RegionQuery>, iterations: Int) {
-    AgcArchive.open(archivePath).use { archive ->
+internal fun jnaOneOpen(archivePath: Path, queries: List<RegionQuery>, iterations: Int, prefetch: Boolean = true) {
+    AgcArchive.open(archivePath, prefetch).use { archive ->
         repeat(iterations) {
             for (q in queries) {
                 archive.getSequence(q.contig, q.start, q.end, q.sample)

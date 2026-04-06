@@ -7,7 +7,7 @@ import java.nio.file.Path
 import kotlin.system.measureTimeMillis
 
 /**
- * Same JNA vs `agc getctg` comparison as [AgcBenchmarkKt], but against a real archive whose path
+ * JNA vs batched `agc getctg` (no per-query CLI) on a real archive whose path
  * comes from **`AGC_ARCHIVE_PATH`** in a **`.env`** file at the project root (or the environment),
  * matching [DemoKt].
  *
@@ -19,6 +19,7 @@ import kotlin.system.measureTimeMillis
  *
  * Environment (same as [AgcBenchmarkKt] for timing knobs):
  * - `AGC_BENCHMARK_ITERATIONS` / `AGC_BENCHMARK_WARMUP` — or args `[iterations] [warmup]`
+ * - `AGC_BENCHMARK_REPORT_DIR` / `AGC_BENCHMARK_CSV` — raw CSV (default `realworld_benchmark.csv` in report dir)
  */
 fun main(args: Array<String>) {
     val archivePath = resolveArchivePathFromEnv()
@@ -26,7 +27,7 @@ fun main(args: Array<String>) {
 
     val iterations = args.getOrNull(0)?.toIntOrNull()
         ?: System.getenv("AGC_BENCHMARK_ITERATIONS")?.toIntOrNull()
-        ?: 25
+        ?: 15
     val warmup = args.getOrNull(1)?.toIntOrNull()
         ?: System.getenv("AGC_BENCHMARK_WARMUP")?.toIntOrNull()
         ?: 5
@@ -35,7 +36,7 @@ fun main(args: Array<String>) {
 
     checkAgcExists()
 
-    val queries = AgcArchive.open(archivePath).use { archive ->
+    val queries = AgcArchive.open(archivePath, prefetch = false).use { archive ->
         val sample = archive.referenceSample
             ?: archive.listSamples().firstOrNull()
             ?: error("Archive has no samples")
@@ -48,42 +49,25 @@ fun main(args: Array<String>) {
     println()
 
     repeat(warmup) {
-        jnaOneOpen(archivePath, queries, 1)
-        cliProcessPerQuery(archivePath, queries, 1)
+        jnaOneOpen(archivePath, queries, 1, prefetch = false)
         cliBatchPerIteration(archivePath, queries, 1)
     }
 
-    val jnaMs = measureTimeMillis { jnaOneOpen(archivePath, queries, iterations) }
-    val cliPerQueryMs = measureTimeMillis { cliProcessPerQuery(archivePath, queries, iterations) }
-    val cliBatchMs = measureTimeMillis { cliBatchPerIteration(archivePath, queries, iterations) }
+    val jnaSamples = List(iterations) { measureTimeMillis { jnaOneOpen(archivePath, queries, 1, prefetch = false) } }
+    val cliBatchSamples =
+        List(iterations) { measureTimeMillis { cliBatchPerIteration(archivePath, queries, 1) } }
 
-    val totalOps = iterations.toLong() * queries.size
+    val csvPath = resolveBenchmarkCsvPath("realworld_benchmark.csv")
+    writeBenchmarkCsv(csvPath, samplesToRowsJnaAndBatch(jnaSamples, cliBatchSamples))
+    println("Raw samples written: ${csvPath.toAbsolutePath()}")
+    println()
     println(
-        buildString {
-            appendLine("Scenario (lower ms is better for same total work)")
-            appendLine("=".repeat(60))
-            appendLine(
-                "JNA (1x open, ${iterations}x ${queries.size} getSequence calls):  " +
-                    "$jnaMs ms total, ${"%.3f".format(jnaMs.toDouble() / totalOps)} ms/op",
-            )
-            appendLine(
-                "CLI (1x process per region, ${iterations * queries.size}x getctg): " +
-                    "$cliPerQueryMs ms total, ${"%.3f".format(cliPerQueryMs.toDouble() / totalOps)} ms/op",
-            )
-            appendLine(
-                "CLI (1X getctg per batch, ${iterations}x ${queries.size} regions each): " +
-                    "$cliBatchMs ms total, ${"%.3f".format(cliBatchMs.toDouble() / iterations)} ms/invocation",
-            )
-            appendLine("=".repeat(60))
-            val jnaSafe = maxOf(1, jnaMs).toDouble()
-            appendLine(
-                "Speedup JNA vs CLI-per-query: ${"%.2f".format(cliPerQueryMs / jnaSafe)}x " +
-                    "(if >1, JNA is faster)",
-            )
-            appendLine(
-                "Speedup JNA vs CLI-per-batch:   ${"%.2f".format(cliBatchMs / jnaSafe)}x",
-            )
-        },
+        formatBenchmarkSummaryJnaAndBatch(
+            iterations,
+            queries.size,
+            jnaSamples,
+            cliBatchSamples,
+        ),
     )
 }
 
