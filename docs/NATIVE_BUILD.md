@@ -7,9 +7,39 @@ built from the [AGC](https://github.com/refresh-bio/agc) C/C++ source code.
 
 The `native/build.sh` script automates this process.
 
-## Prerequisites
+## Option A: Using Pixi (Recommended)
 
-### macOS
+[Pixi](https://pixi.sh) manages all native toolchain dependencies (GCC, Make,
+cmake, etc.) through Conda packages so you don't need to install them manually.
+
+### Install Pixi
+
+```bash
+curl -fsSL https://pixi.sh/install.sh | bash
+```
+
+### Build the Native Library
+
+```bash
+pixi run build-native
+```
+
+Pixi resolves the full environment from `pixi.toml` which includes:
+
+* GCC 11+, 
+* Make 4+, 
+* cmake,
+* `agc` (for running benchmarks with the CLI process builder)
+* R + `ggplot2` (for plotting benchmark results)
+
+
+---
+
+## Option B: Manual Setup
+
+### Prerequisites
+
+#### macOS
 
 ```bash
 brew install gcc make
@@ -19,7 +49,7 @@ brew install gcc make
 - GNU Make 4+ (macOS ships Make 3.81 which is too old)
 - cmake (usually available via Xcode Command Line Tools)
 
-### Linux (Ubuntu/Debian)
+#### Linux (Ubuntu/Debian)
 
 ```bash
 sudo apt-get install build-essential cmake
@@ -27,7 +57,7 @@ sudo apt-get install build-essential cmake
 
 GCC 10+ is typically available by default on Ubuntu 22.04+.
 
-## Build Steps
+### Build Steps
 
 ```bash
 cd native
