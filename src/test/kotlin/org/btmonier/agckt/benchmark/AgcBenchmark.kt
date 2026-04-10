@@ -148,3 +148,31 @@ internal fun cliBatchPerIteration(archivePath: Path, queries: List<RegionQuery>,
         sinkProcess(p)
     }
 }
+
+/**
+ * Like [cliBatchPerIteration] but splits [queries] into chunks of at most [maxRegionsPerProcess]
+ * so each `agc getctg` argv stays within OS limits on large workloads (e.g. full-chromosome tiling).
+ * Each outer iteration runs one subprocess per chunk, in order.
+ */
+internal fun cliBatchChunkedPerIteration(
+    archivePath: Path,
+    queries: List<RegionQuery>,
+    iterations: Int,
+    maxRegionsPerProcess: Int,
+) {
+    require(maxRegionsPerProcess > 0) { "maxRegionsPerProcess must be > 0, was $maxRegionsPerProcess" }
+    val abs = archivePath.toAbsolutePath().toString()
+    repeat(iterations) {
+        for (chunk in queries.chunked(maxRegionsPerProcess)) {
+            val cmd = ArrayList<String>(3 + chunk.size).apply {
+                add("agc")
+                add("getctg")
+                add(abs)
+                chunk.forEach { q -> add(q.toCliSpec()) }
+            }
+            val pb = ProcessBuilder(cmd)
+            val p = pb.start()
+            sinkProcess(p)
+        }
+    }
+}
