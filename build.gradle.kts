@@ -70,6 +70,20 @@ tasks.register<JavaExec>("benchmarkReal") {
     )
 }
 
+tasks.register<JavaExec>("benchmarkFullChrRegions") {
+    group = "verification"
+    description =
+        "JNA vs chunked agc getctg on AGC_ARCHIVE_PATH (.env), chr1 tiled 5–10 kbp; needs agc and native/lib"
+    dependsOn(tasks.testClasses)
+    classpath = sourceSets["test"].runtimeClasspath
+    mainClass.set("org.btmonier.agckt.benchmark.FullChrRegionsBenchmarkKt")
+    workingDir = layout.projectDirectory.asFile
+    jvmArgs(
+        "-Djna.library.path=${layout.projectDirectory.dir("native/lib").asFile.absolutePath}",
+        "-Xmx2g",
+    )
+}
+
 detekt {
     buildUponDefaultConfig = true
     allRules = false
